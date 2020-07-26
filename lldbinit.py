@@ -1,3 +1,4 @@
+import sys
 import lldb
 import enum
 
@@ -54,6 +55,27 @@ class Frame:
     def __str__(self):
         return "Frame #%03d %s %s" % (self.id, ColoredText(self.pc, TextColorType.YELLOW), self.frame.GetPCAddress())
 
+class Register:
+    def __init__(self, r_value):
+        self.r_value = r_value
+
+    def __str__(self):
+        return "%s" % self.r_value.GetName()
+
+class RegisterSet:
+    def __init__(self, rs_value):
+        self.rs_value = rs_value
+        self.name = self.rs_value.GetName()
+        self.general_registers = []
+        self._parse()
+
+    def _parse(self):
+        for r in self.general_registers:
+            self.general_registers.append(Register(r))
+
+    def __str__(self):
+        return "%d" %len(self.general_registers)
+
 
 class FrameCommand:
     def __init__(self, debugger, session_dict):
@@ -85,6 +107,13 @@ class FrameCommand:
         for f in thread:
             frame = Frame(f)
             print(" %s" % (str(frame)), file=result)
+
+        registers = thread.GetFrameAtIndex(0).GetRegisters()
+        register_objects = []
+        for r in registers:
+            register_objects.append(RegisterSet(r))
+
+        print("%s" % register_objects[0], file=result)
 
     def get_short_help(self):
         help_str = "Display current frame"
