@@ -44,13 +44,15 @@ class ColoredText:
 
 
 class Frame:
-    def __init__(self, id, cfa, module):
-        self.id = id
-        self.cfa = cfa
-        self.module = module
+    def __init__(self, frame):
+        self.frame = frame
+        self.id = self.frame.GetFrameID()
+        self.module = self.frame.GetModule()
+        self.function_name = self.frame.GetFunctionName()
+        self.pc = "0x%016x" % self.frame.GetPC()
 
     def __str__(self):
-        return "Frame #%03d 0x%x %s" % (self.id, self.cfa, self.module)
+        return "Frame #%03d %s %s" % (self.id, ColoredText(self.pc, TextColorType.YELLOW), self.frame.GetPCAddress())
 
 
 class FrameCommand:
@@ -81,7 +83,7 @@ class FrameCommand:
         print(desc, file=result)
 
         for f in thread:
-            frame = Frame(f.GetFrameID(), f.GetCFA(), f.GetModule())
+            frame = Frame(f)
             print(" %s" % (str(frame)), file=result)
 
     def get_short_help(self):
