@@ -1,6 +1,6 @@
 import sys
-import lldb
 import enum
+import lldb
 
 
 class TextColorType(enum.Enum):
@@ -60,21 +60,44 @@ class Register:
         self.r_value = r_value
 
     def __str__(self):
-        return "%s" % self.r_value.GetName()
+        name = self.r_value.GetName().upper()
+        if len(name) == 2:
+            return "%s:  %s" %(name, self.r_value.GetValue())
+        else:
+            return "%s: %s" %(name, self.r_value.GetValue())
 
 class RegisterSet:
-    def __init__(self, rs_value):
-        self.rs_value = rs_value
-        self.name = self.rs_value.GetName()
+    def __init__(self, rs):
+        self.rs = rs 
         self.general_registers = []
         self._parse()
 
     def _parse(self):
-        for r in self.general_registers:
+        for r in self.rs:
             self.general_registers.append(Register(r))
 
+    @staticmethod
+    def find_register_set(frame, name):
+        for value in frame.GetRegisters():
+            if name.lower() in value.GetName().lower():
+                return RegisterSet(value)
+        return None
+
     def __str__(self):
-        return "%d" %len(self.general_registers)
+        i = 1
+        desc = ""
+        """
+        RAX~GS
+        """
+        for r in self.general_registers[0:17]:
+            desc += "%s" % r
+            if i % 4 == 0:
+                desc += "\n"
+            else:
+                desc += " "
+            i = i + 1
+        return desc
+
 
 
 class FrameCommand:
@@ -104,12 +127,6 @@ class FrameCommand:
             frame = Frame(f)
             print(" %s" % (str(frame)), file=result)
 
-        registers = thread.GetFrameAtIndex(0).GetRegisters()
-        register_objects = []
-        for r in registers:
-            register_objects.append(RegisterSet(r))
-
-        print("%s" % register_objects[0], file=result)
 
     def get_short_help(self):
         help_str = "Display current frame"
@@ -117,6 +134,23 @@ class FrameCommand:
     def get_long_help(self):
         pass
 
+class RegistersCommand:
+    def __init__(self, debugger, session_dict):
+        pass
+
+    def __call__(self, debugger, command, exe_ctx, result):
+        target = debugger.GetSelectedTarget()
+        process = target.GetProcess()
+        thread = process.GetSelectedThread()
+        gprs = RegisterSet.find_register_set(thread.GetFrameAtIndex(0), "general purpose")
+        print("%s" % gprs, file=result)
+
+    def get_short_help(self):
+        help_str = "Display current frame"
+
+    def get_long_help(self):
+        pass
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand("command script add --class lldbinit.FrameCommand f")
+    debugger.HandleCommand("command script add --class lldbinit.RegistersCommand ra")
