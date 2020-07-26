@@ -92,16 +92,12 @@ class FrameCommand:
         queue_name = thread.GetQueueName()
         queue_id = thread.GetQueueID()
         stop_reason = thread.GetStopReason()
-        stop_desc = thread.GetStopDescription(
-                thread.GetStopReasonDataAtIndex(stop_reason))
+        stop_desc = thread.GetStopDescription(thread.GetStopReasonDataAtIndex(stop_reason))
 
-        desc = "Thread #%02d, ID: 0x%x, queue = %s" % (thread_index,
-                thread_id, ColoredText(queue_name, TextColorType.GREEN))
+        desc = "Thread #%02d, ID: 0x%x, queue = %s" % (thread_index, thread_id, ColoredText(queue_name, TextColorType.GREEN))
         if thread_name is not None:
-            desc += ", name = %s" % (ColoredText(thread_name,
-                TextColorType.BLUE))
-        desc += ", stop reason = %s" % (ColoredText(stop_desc,
-            TextColorType.RED))
+            desc += ", name = %s" % (ColoredText(thread_name, TextColorType.BLUE))
+        desc += ", stop reason = %s" % (ColoredText(stop_desc, TextColorType.RED))
         print(desc, file=result)
 
         for f in thread:
@@ -123,5 +119,4 @@ class FrameCommand:
 
 
 def __lldb_init_module(debugger, internal_dict):
-    debugger.HandleCommand("command script add \
-            --class lldbinit.FrameCommand f")
+    debugger.HandleCommand("command script add --class lldbinit.FrameCommand f")
