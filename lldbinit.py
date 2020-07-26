@@ -55,6 +55,7 @@ class Frame:
     def __str__(self):
         return "Frame #%03d %s %s" % (self.id, ColoredText(self.pc, TextColorType.YELLOW), self.frame.GetPCAddress())
 
+
 class Register:
     def __init__(self, r_value):
         self.r_value = r_value
@@ -62,13 +63,14 @@ class Register:
     def __str__(self):
         name = self.r_value.GetName().upper()
         if len(name) == 2:
-            return "%s:  %s" %(name, self.r_value.GetValue())
+            return "%s:  %s" % (name, self.r_value.GetValue())
         else:
-            return "%s: %s" %(name, self.r_value.GetValue())
+            return "%s: %s" % (name, self.r_value.GetValue())
+
 
 class RegisterSet:
     def __init__(self, rs):
-        self.rs = rs 
+        self.rs = rs
         self.general_registers = []
         self._parse()
 
@@ -99,7 +101,6 @@ class RegisterSet:
         return desc
 
 
-
 class FrameCommand:
     def __init__(self, debugger, session_dict):
         pass
@@ -115,24 +116,28 @@ class FrameCommand:
         queue_name = thread.GetQueueName()
         queue_id = thread.GetQueueID()
         stop_reason = thread.GetStopReason()
-        stop_desc = thread.GetStopDescription(thread.GetStopReasonDataAtIndex(stop_reason))
+        stop_desc = thread.GetStopDescription(
+            thread.GetStopReasonDataAtIndex(stop_reason))
 
-        desc = "Thread #%02d, ID: 0x%x, queue = %s" % (thread_index, thread_id, ColoredText(queue_name, TextColorType.GREEN))
+        desc = "Thread #%02d, ID: 0x%x, queue = %s" % (
+            thread_index, thread_id, ColoredText(queue_name, TextColorType.GREEN))
         if thread_name is not None:
-            desc += ", name = %s" % (ColoredText(thread_name, TextColorType.BLUE))
-        desc += ", stop reason = %s" % (ColoredText(stop_desc, TextColorType.RED))
+            desc += ", name = %s" % (ColoredText(thread_name,
+                                                 TextColorType.BLUE))
+        desc += ", stop reason = %s" % (ColoredText(stop_desc,
+                                                    TextColorType.RED))
         print(desc, file=result)
 
         for f in thread:
             frame = Frame(f)
             print(" %s" % (str(frame)), file=result)
 
-
     def get_short_help(self):
         help_str = "Display current frame"
 
     def get_long_help(self):
         pass
+
 
 class RegistersCommand:
     def __init__(self, debugger, session_dict):
@@ -142,7 +147,8 @@ class RegistersCommand:
         target = debugger.GetSelectedTarget()
         process = target.GetProcess()
         thread = process.GetSelectedThread()
-        gprs = RegisterSet.find_register_set(thread.GetFrameAtIndex(0), "general purpose")
+        gprs = RegisterSet.find_register_set(
+            thread.GetFrameAtIndex(0), "general purpose")
         print("%s" % gprs, file=result)
 
     def get_short_help(self):
@@ -151,6 +157,9 @@ class RegistersCommand:
     def get_long_help(self):
         pass
 
+
 def __lldb_init_module(debugger, internal_dict):
-    debugger.HandleCommand("command script add --class lldbinit.FrameCommand f")
-    debugger.HandleCommand("command script add --class lldbinit.RegistersCommand ra")
+    debugger.HandleCommand(
+        "command script add --class lldbinit.FrameCommand f")
+    debugger.HandleCommand(
+        "command script add --class lldbinit.RegistersCommand ra")
