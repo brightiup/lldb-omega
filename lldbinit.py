@@ -158,8 +158,38 @@ class RegistersCommand:
         pass
 
 
+class AsmCommand:
+    def __init__(self, debugger, session_dict):
+        pass
+
+    def __call__(self, debugger, command, exe_ctx, result):
+        target = debugger.GetSelectedTarget()
+        process = target.GetProcess()
+        thread = process.GetSelectedThread()
+        frame = thread.GetFrameAtIndex(0)
+        asm_ins = frame.Disassemble()
+
+        res = lldb.SBCommandReturnObject()
+        debugger.GetCommandInterpreter().HandleCommand(
+            "disassemble --start-address=$rip --count 8", res)
+        print(res.GetOutput(), file=result)
+
+    def get_short_help(self):
+        help_str = "Display current frame"
+
+    def get_long_help(self):
+        pass
+
+
 def __lldb_init_module(debugger, internal_dict):
+    res = lldb.SBCommandReturnObject()
+
+    debugger.GetCommandInterpreter().HandleCommand(
+        "settings set target.x86-disassembly-flavor intel", res)
+
     debugger.HandleCommand(
         "command script add --class lldbinit.FrameCommand f")
     debugger.HandleCommand(
         "command script add --class lldbinit.RegistersCommand ra")
+    debugger.HandleCommand(
+        "command script add --class lldbinit.AsmCommand ac")
